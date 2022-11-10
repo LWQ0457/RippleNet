@@ -83,6 +83,15 @@ def load_kg(args):
 
 
 def construct_kg(kg_np):
+    ''' 
+        kg->[
+            (head1,{(tail_1_1,relation_1_1),(tail_1_2,relation_1_2),...}),
+            (head2,{(tail_2_1,relation_2_1),(tail_2_2,relation_2_2),...}),
+            ...
+            ]
+    '''
+    #kg的数据结构是字典集合，集合的key是头实体
+    #集合的值是个字典，字典里存的是与该头实体相连（有关系）的尾实体和关系
     print('constructing knowledge graph ...')
     kg = collections.defaultdict(list)
     for head, relation, tail in kg_np:
@@ -128,6 +137,7 @@ def get_ripple_set(args, kg, user_history_dict):
                 ripple_set[user].append(ripple_set[user][-1])
             else:
                 # sample a fixed-size 1-hop memory for each user
+                # 当三元组数量＜参数设置rippleset的大小时，可重复选取同一个三元组
                 replace = len(memories_h) < args.n_memory
                 indices = np.random.choice(len(memories_h), size=args.n_memory, replace=replace)
                 memories_h = [memories_h[i] for i in indices]
