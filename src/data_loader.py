@@ -50,7 +50,7 @@ def dataset_split(rating_np):
             if user not in user_history_dict:
                 user_history_dict[user] = []
             user_history_dict[user].append(item)
-
+    #筛选出有“交互历史”的用户，因为偏好传播的起点是用户历史兴趣集
     train_indices = [i for i in train_indices if rating_np[i][0] in user_history_dict]
     eval_indices = [i for i in eval_indices if rating_np[i][0] in user_history_dict]
     test_indices = [i for i in test_indices if rating_np[i][0] in user_history_dict]
@@ -103,12 +103,18 @@ def get_ripple_set(args, kg, user_history_dict):
             memories_t = []
 
             if h == 0:
+                #第0跳的尾实体就是用户的历史兴趣集
+                #这里tails_of_last_hop的数据结构可以认为是set类型或简单数组
+                #tails_of_last_hop->[t1,t2,t3,t4....]
                 tails_of_last_hop = user_history_dict[user]
             else:
+                #取当前user上一跳全部尾实体，这里-1表示全部
                 tails_of_last_hop = ripple_set[user][-1][2]
 
             for entity in tails_of_last_hop:
                 for tail_and_relation in kg[entity]:
+                    #这里tail_and_relation仅仅只是tail和relation，不是完整的三元组
+                    #相当于取dict里的value
                     memories_h.append(entity)
                     memories_r.append(tail_and_relation[1])
                     memories_t.append(tail_and_relation[0])
@@ -116,6 +122,8 @@ def get_ripple_set(args, kg, user_history_dict):
             # if the current ripple set of the given user is empty, we simply copy the ripple set of the last hop here
             # this won't happen for h = 0, because only the items that appear in the KG have been selected
             # this only happens on 154 users in Book-Crossing dataset (since both BX dataset and the KG are sparse)
+            # 没有与用户的历史兴趣集相关的三元组？
+            # 也就是没有潜在偏好，kg中有该用户的根结点但是没有“下文”了
             if len(memories_h) == 0:
                 ripple_set[user].append(ripple_set[user][-1])
             else:
