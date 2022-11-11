@@ -30,8 +30,10 @@ class RippleNet(object):
         self.memories_h = []
         self.memories_r = []
         self.memories_t = []
-
+        # 把所有h、r、t分别拼成一个矩阵
         for hop in range(self.n_hop):
+            # tf.placeholder：大概意思就是复用对象。如果不复用，在for循环过程中会产生很多对象
+            # [None, 3]表示列是3，行不定
             self.memories_h.append(
                 tf.placeholder(dtype=tf.int32, shape=[None, self.n_memory], name="memories_h_" + str(hop)))
             self.memories_r.append(
@@ -40,6 +42,7 @@ class RippleNet(object):
                 tf.placeholder(dtype=tf.int32, shape=[None, self.n_memory], name="memories_t_" + str(hop)))
 
     def _build_embeddings(self):
+        # 使用xavier初始值初始化知识图中的实体和关系表示
         self.entity_emb_matrix = tf.get_variable(name="entity_emb_matrix", dtype=tf.float64,
                                                  shape=[self.n_entity, self.dim],
                                                  initializer=tf.contrib.layers.xavier_initializer())
@@ -74,6 +77,7 @@ class RippleNet(object):
         self.scores_normalized = tf.sigmoid(self.scores)
 
     def _key_addressing(self):
+        # 对应论文公式4和公式5，计算item v和 h 在关系r_i下的相似度
         o_list = []
         for hop in range(self.n_hop):
             # [batch_size, n_memory, dim, 1]

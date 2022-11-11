@@ -50,7 +50,7 @@ def dataset_split(rating_np):
             if user not in user_history_dict:
                 user_history_dict[user] = []
             user_history_dict[user].append(item)
-    #筛选出有“交互历史”的用户，因为偏好传播的起点是用户历史兴趣集
+    # 筛选出有“交互历史”的用户，因为偏好传播的起点是用户历史兴趣集
     train_indices = [i for i in train_indices if rating_np[i][0] in user_history_dict]
     eval_indices = [i for i in eval_indices if rating_np[i][0] in user_history_dict]
     test_indices = [i for i in test_indices if rating_np[i][0] in user_history_dict]
@@ -83,15 +83,15 @@ def load_kg(args):
 
 
 def construct_kg(kg_np):
-    ''' 
+    """
         kg->[
             (head1,{(tail_1_1,relation_1_1),(tail_1_2,relation_1_2),...}),
             (head2,{(tail_2_1,relation_2_1),(tail_2_2,relation_2_2),...}),
             ...
             ]
-    '''
-    #kg的数据结构是字典集合，集合的key是头实体
-    #集合的值是个字典，字典里存的是与该头实体相连（有关系）的尾实体和关系
+    """
+    # kg的数据结构是字典集合，集合的key是头实体
+    # 集合的值是个字典，字典里存的是与该头实体相连（有关系）的尾实体和关系
     print('constructing knowledge graph ...')
     kg = collections.defaultdict(list)
     for head, relation, tail in kg_np:
@@ -112,18 +112,18 @@ def get_ripple_set(args, kg, user_history_dict):
             memories_t = []
 
             if h == 0:
-                #第0跳的尾实体就是用户的历史兴趣集
-                #这里tails_of_last_hop的数据结构可以认为是set类型或简单数组
-                #tails_of_last_hop->[t1,t2,t3,t4....]
+                # 第0跳的尾实体就是用户的历史兴趣集
+                # 这里tails_of_last_hop的数据结构可以认为是set类型或简单数组
+                # tails_of_last_hop->[t1,t2,t3,t4....]
                 tails_of_last_hop = user_history_dict[user]
             else:
-                #取当前user上一跳全部尾实体，这里-1表示全部
+                # 取当前user上一跳全部尾实体，这里-1表示全部
                 tails_of_last_hop = ripple_set[user][-1][2]
 
             for entity in tails_of_last_hop:
                 for tail_and_relation in kg[entity]:
-                    #这里tail_and_relation仅仅只是tail和relation，不是完整的三元组
-                    #相当于取dict里的value
+                    # 这里tail_and_relation仅仅只是tail和relation，不是完整的三元组
+                    # 相当于取dict里的value
                     memories_h.append(entity)
                     memories_r.append(tail_and_relation[1])
                     memories_t.append(tail_and_relation[0])
@@ -137,7 +137,7 @@ def get_ripple_set(args, kg, user_history_dict):
                 ripple_set[user].append(ripple_set[user][-1])
             else:
                 # sample a fixed-size 1-hop memory for each user
-                # 当三元组数量＜参数设置rippleset的大小时，可重复选取同一个三元组
+                # 当三元组数量＜参数设置ripple set的大小时，可重复选取同一个三元组
                 replace = len(memories_h) < args.n_memory
                 indices = np.random.choice(len(memories_h), size=args.n_memory, replace=replace)
                 memories_h = [memories_h[i] for i in indices]
